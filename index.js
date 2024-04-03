@@ -238,7 +238,8 @@ class Game {
         entity.attack(adj);
         hasAttacked = true;
         if (adj.hp <= 0) {
-          this.field[y + dy][x + dx] = 0;
+          const toLeave = isPlayer ? adj.stepOut() : 0;
+          this.field[y + dy][x + dx] = toLeave;
           if (isPlayer) this.enemies = this.enemies.filter((e) => e !== adj);
         }
       }
