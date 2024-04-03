@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="index.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"
+      integrity="sha256-qXBd/EfAdjOA2FGrGAG+b3YBn2tn5A6bhz+LSgYD96k="
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body,
+      html {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background-color: #000000;
+        color: #ffffff;
+      }
+      h1 {
+        font-size: 30px;
+        padding: 10px 0px;
+        margin: 0px;
+      }
+      .field-box {
+        border: 2px solid #d0d0d0;
+        float: left;
+      }
+      .field {
+        position: relative;
+        width: 1200px;
+        height: 720px;
+      }
+      .field .tile {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background-size: 100%;
+        background-image: url(images/tile-.png);
+        z-index: 5;
+      }
+      .field .tileW {
+        background-image: url(images/tile-W.png);
+      }
+      .field .tileE {
+        background-image: url(images/tile-E.png);
+        z-index: 10;
+      }
+      .field .tileP {
+        background-image: url(images/tile-P.png);
+        z-index: 10;
+      }
+      .field .tileHP {
+        background-image: url(images/tile-HP.png);
+        z-index: 9;
+      }
+      .field .tileSW {
+        background-image: url(images/tile-SW.png);
+        z-index: 9;
+      }
+      .field .tile .health {
+        background-color: #ff0000;
+        z-index: 11;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        height: 3px;
+      }
+      .field .tileP .health {
+        background-color: #00ff00;
+        z-index: 11;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        height: 3px;
+      }
+
+      .right {
+        transform: none;
+      }
+
+      .left {
+        transform: rotateY(180deg);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Игровое поле</h1>
+    <div class="field-box"><div class="field"></div></div>
+    <script>
+      const game = new Game();
+      game.init();
+    </script>
+  </body>
+</html>
