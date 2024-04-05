@@ -85,7 +85,7 @@ class Game {
     this.root = document.querySelector(".field");
     this.field = Array(this.ROWS)
       .fill()
-      .map(() => Array(this.COLS).fill(1));
+      .map(() => Array(this.COLS).fill("1"));
     this.rooms = [];
     this.passages = [];
     this.player = null;
@@ -97,13 +97,13 @@ class Game {
 
     for (let i = 0; i < passageCount; i++) {
       const passageX = _.random(0, 39);
-      for (let y = 0; y < this.ROWS; y++) this.field[y][passageX] = 0;
+      for (let y = 0; y < this.ROWS; y++) this.field[y][passageX] = "0";
       this.passages.push({ x: passageX, y: _.random(0, 23) });
     }
 
     for (let i = 0; i < passageCount; i++) {
       const passageY = _.random(0, 23);
-      for (let x = 0; x < this.COLS; x++) this.field[passageY][x] = 0;
+      for (let x = 0; x < this.COLS; x++) this.field[passageY][x] = "0";
       this.passages.push({ x: _.random(0, 39), y: passageY });
     }
   }
@@ -127,7 +127,7 @@ class Game {
     });
 
     for (let x = roomX; x < roomX + roomWidth; x++)
-      for (let y = roomY; y < roomY + roomHeight; y++) this.field[y][x] = 0;
+      for (let y = roomY; y < roomY + roomHeight; y++) this.field[y][x] = "0";
   }
 
   placeRooms() {
@@ -139,7 +139,7 @@ class Game {
     const emptyTiles = [];
     for (let y = 0; y < this.ROWS; y++) {
       for (let x = 0; x < this.COLS; x++) {
-        if (this.field[y][x] === 0) {
+        if (this.field[y][x] === "0") {
           emptyTiles.push({ x, y });
         }
       }
@@ -151,13 +151,13 @@ class Game {
     // Мечи
     for (let i = 0; i < this.numSwords; i++) {
       const { x, y } = shuffledTiles[index++];
-      this.field[y][x] = 4;
+      this.field[y][x] = "4";
     }
 
     // Зелья
     for (let i = 0; i < this.numPotions; i++) {
       const { x, y } = shuffledTiles[index++];
-      this.field[y][x] = 5;
+      this.field[y][x] = "5";
     }
 
     // Игрок
@@ -175,31 +175,6 @@ class Game {
     }
   }
 
-  render() {
-    this.root.innerHTML = "";
-    for (let i = 0; i < this.ROWS; i++)
-      for (let j = 0; j < this.COLS; j++) {
-        const tile = document.createElement("div");
-        tile.classList.add("tile");
-        tile.classList.add(this.type[this.field[i][j]]);
-
-        const currentObject = this.field[i][j];
-        if (this.field[i][j] instanceof Entity) {
-          tile.style.transform =
-            currentObject.direction === "right" ? "none" : "scaleX(-1)";
-
-          const hpBar = document.createElement("div");
-          hpBar.classList.add("health");
-          hpBar.style.width = `${currentObject.hp}%`;
-          tile.appendChild(hpBar);
-        }
-
-        tile.style.left = j * 30 + "px";
-        tile.style.top = i * 30 + "px";
-        this.root.appendChild(tile);
-      }
-  }
-
   moveEntity(entity, dx, dy) {
     if (dx === 1) entity.direction = "right";
     else if (dx === -1) entity.direction = "left";
@@ -209,16 +184,16 @@ class Game {
     const adj = this.field[entity.y + dy]?.[entity.x + dx].toString();
     if (adj === "1" || adj === "2" || adj === "3") return;
 
-    let toLeave = 0;
-    if (entity instanceof Enemy) {
-      toLeave = entity.stepOut();
-    }
+    let toLeave = "0";
+    if (entity instanceof Enemy) toLeave = entity.stepOut();
 
-    if (adj === "4") {
-      if (entity === this.player) this.player.pickSword();
-      else entity.stepOn(adj);
-    } else if (adj === "5") {
-      if (entity === this.player) this.player.pickPotion();
+    const actions = {
+      4: "pickSword",
+      5: "pickPotion",
+    };
+    if (adj in actions) {
+      const action = actions[adj];
+      if (entity === this.player) this.player[action]?.();
       else entity.stepOn(adj);
     }
 
@@ -238,25 +213,13 @@ class Game {
         entity.attack(adj);
         hasAttacked = true;
         if (adj.hp <= 0) {
-          const toLeave = isPlayer ? adj.stepOut() : 0;
+          const toLeave = isPlayer ? adj.stepOut() : "0";
           this.field[y + dy][x + dx] = toLeave;
           if (isPlayer) this.enemies = this.enemies.filter((e) => e !== adj);
         }
       }
     }
     return hasAttacked;
-  }
-
-  handlePlayerMove(dx, dy) {
-    this.enemiesTurn();
-    this.moveEntity(this.player, dx, dy);
-    this.endTurn();
-  }
-
-  handlePlayerAttack() {
-    this.enemiesTurn();
-    this.handleAttack(this.player, true);
-    this.endTurn();
   }
 
   handleGameEnd() {
@@ -283,9 +246,44 @@ class Game {
     });
   }
 
-  endTurn() {
+  handleTurn(playerAction) {
+    this.enemiesTurn();
+    playerAction();
     this.render();
     this.handleGameEnd();
+  }
+
+  handlePlayerMove(dx, dy) {
+    this.handleTurn(() => this.moveEntity(this.player, dx, dy));
+  }
+
+  handlePlayerAttack() {
+    this.handleTurn(() => this.handleAttack(this.player, true));
+  }
+
+  render() {
+    this.root.innerHTML = "";
+    for (let i = 0; i < this.ROWS; i++)
+      for (let j = 0; j < this.COLS; j++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        tile.classList.add(this.type[this.field[i][j]]);
+
+        const currentObject = this.field[i][j];
+        if (currentObject instanceof Entity) {
+          tile.style.transform =
+            currentObject.direction === "right" ? "none" : "rotateY(180deg)";
+
+          const hpBar = document.createElement("div");
+          hpBar.classList.add("health");
+          hpBar.style.width = `${currentObject.hp}%`;
+          tile.appendChild(hpBar);
+        }
+
+        tile.style.left = j * 30 + "px";
+        tile.style.top = i * 30 + "px";
+        this.root.appendChild(tile);
+      }
   }
 
   init() {
@@ -293,17 +291,15 @@ class Game {
     this.placeRooms();
     this.placeObjects();
     this.render();
+
     document.addEventListener("keydown", (e) => {
       const key = e.key.toLowerCase();
 
       if (key === "w") this.handlePlayerMove(0, -1);
-      if (key === "a") {
-        this.handlePlayerMove(-1, 0);
-      }
+      if (key === "a") this.handlePlayerMove(-1, 0);
       if (key === "s") this.handlePlayerMove(0, 1);
-      if (key === "d") {
-        this.handlePlayerMove(1, 0);
-      }
+      if (key === "d") this.handlePlayerMove(1, 0);
+
       if (key === " ") this.handlePlayerAttack();
     });
   }
