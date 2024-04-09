@@ -227,7 +227,7 @@ class Game {
       setTimeout(() => {
         alert(msg);
         location.reload();
-      }, 0);
+      }, 500);
 
     if (this.enemies.length === 0) fn("Вы победили!");
     else if (this.player.hp <= 0) fn("Вы проиграли!");
